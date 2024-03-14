@@ -44,13 +44,13 @@ router.post("/signup", async (req,res)=>{
 
     const userId = user._id;
 
-    const token = jwt.sign({
-        userId
-    }, JWT_SECRET);
+    await Account.create({
+        userId,
+        balance: 1 + Math.random() * 10000
+    })
 
     res.json({
-        message : "User created successfuly",
-        token : token
+        message : "User created successfuly"
     })
 
 });
