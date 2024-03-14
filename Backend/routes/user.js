@@ -13,6 +13,7 @@ const signUpSchema = zod.object({
     lastName : zod.string()
 });
 
+// Sign Up Route
 router.post("/signup", async (req,res)=>{
     const body = req.body ;
     const {success} = signUpSchema.safeParse(body);
@@ -59,6 +60,7 @@ const signInSchema = zod.object({
     password : zod.string()
 });
 
+// Sign In Route
 router.post("/signin", async (req,res)=>{
     const {success} = signInSchema(req.body);
 
@@ -90,6 +92,54 @@ router.post("/signin", async (req,res)=>{
 
 })
 
+const updateBody = zod.object({
+	password: zod.string().optional(),
+    firstName: zod.string().optional(),
+    lastName: zod.string().optional(),
+})
+
+// Update User Data Route
+router.put("/", authMiddleware, async (req, res) => {
+    const { success } = updateBody.safeParse(req.body)
+    if (!success) {
+        res.status(411).json({
+            message: "Error while updating information"
+        })
+    }
+
+    await User.updateOne(req.body, {
+        id: req.userId
+    })
+
+    res.json({
+        message: "Updated successfully"
+    })
+})
+
+router.get("/bulk", async (req, res) => {
+    const filter = req.query.filter || ""; // this line retrieves the filter query parameter from request URL
+
+    const users = await User.find({
+        $or: [{
+            firstName: {
+                "$regex": filter
+            }
+        }, {
+            lastName: {
+                "$regex": filter
+            }
+        }]
+    })
+
+    res.json({
+        user: users.map(user => ({
+            username: user.username,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            _id: user._id
+        }))
+    })
+})
 
 
 module.exports = router;
